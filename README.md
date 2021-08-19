@@ -1,5 +1,5 @@
 # unreal-helper
-Unreal helpers to be called from the cli
+Unreal helpers batch file
 
 - `uh h` `uh help` for full list of commands
 - `uh b` `uh build` for building the project
