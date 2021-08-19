@@ -47,6 +47,7 @@ echo available subcommands:
 echo " h help - show this help"
 echo " c clean - clean build artifacts"
 echo " b build - build C++ project sources"
+echo " r run - run project without opening the editor"
 echo " p package [platform=Win64] - package project for `platform`"
 echo " gcc generate-compile-commands - generate `compile_commands.json` file for use with clangd server"
 exit /B
@@ -72,6 +73,16 @@ call %BATCH_FILES_DIR%\Build.bat %PROJECT_NAME%Editor Win64 Development "%UPROJE
 exit /B
 
 :BUILD_END
+
+rem ============================================================= RUN ACTION
+if "%ACTION%" EQU "r" set ACTION=run
+if "%ACTION%" NEQ "run" goto RUN_END
+
+echo RUNNING...
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" -game -log -windowed -resx=1280 -resy=720
+exit /B
+
+:RUN_END
 
 rem ============================================================= PACKAGE ACTION
 if "%ACTION%" EQU "p" set ACTION=package
