@@ -37,6 +37,8 @@ set UE4EDITOR_CMD=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor-cmd.exe
 set BATCH_FILES_DIR=%UE4_DIR%\Engine\Build\BatchFiles
 
 set ACTION=%1
+set TAIL_PARAMS=%*
+call set TAIL_PARAMS=%%TAIL_PARAMS:*%1=%%
 
 rem ============================================================= HELP ACTION
 if "%ACTION%" EQU "h" set ACTION=help
@@ -59,7 +61,7 @@ if "%ACTION%" EQU "c" set ACTION=clean
 if "%ACTION%" NEQ "clean" goto CLEAN_END
 
 echo CLEANING...
-call %BATCH_FILES_DIR%\Clean.bat %PROJECT_NAME%Editor Win64 Development "%UPROJECT_PATH%"
+call %BATCH_FILES_DIR%\Clean.bat %PROJECT_NAME%Editor Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
 exit /B
 
 :CLEAN_END
@@ -69,7 +71,7 @@ if "%ACTION%" EQU "b" set ACTION=build
 if "%ACTION%" NEQ "build" goto BUILD_END
 
 echo BUILDING...
-call %BATCH_FILES_DIR%\Build.bat %PROJECT_NAME%Editor Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload
+call %BATCH_FILES_DIR%\Build.bat %PROJECT_NAME%Editor Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
 exit /B
 
 :BUILD_END
@@ -79,7 +81,7 @@ if "%ACTION%" EQU "r" set ACTION=run
 if "%ACTION%" NEQ "run" goto RUN_END
 
 echo RUNNING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" -game -log -windowed -resx=1280 -resy=720
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" -game -log -windowed -resx=1280 -resy=720 %TAIL_PARAMS%
 exit /B
 
 :RUN_END
@@ -89,9 +91,14 @@ if "%ACTION%" EQU "p" set ACTION=package
 if "%ACTION%" NEQ "package" goto PACKAGE_END
 
 set TARGET_PLATFORM=%2
-if not defined TARGET_PLATFORM set TARGET_PLATFORM=Win64
+if defined TARGET_PLATFORM (
+	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
+) else (
+	set TARGET_PLATFORM=Win64
+)
+
 echo PACKAGING FOR %TARGET_PLATFORM%...
-call %BATCH_FILES_DIR%\RunUAT.bat -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target=NekoNeko -clientconfig=Development -serverconfig=Development -utf8output
+call %BATCH_FILES_DIR%\RunUAT.bat -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target=NekoNeko -clientconfig=Development -serverconfig=Development -utf8output %TAIL_PARAMS%
 exit /B
 
 :PACKAGE_END
@@ -101,7 +108,7 @@ if "%ACTION%" EQU "gcc" set ACTION=generate-compile-commands
 if "%ACTION%" NEQ "generate-compile-commands" goto GENERATE_COMPILE_COMMANDS_END
 
 echo GENERATING COMPILE COMMANDS
-call %UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe -mode=GenerateClangDatabase -project=%UPROJECT_PATH% -game -engine %PROJECT_NAME%Editor Development Win64 Development
+call %UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe -mode=GenerateClangDatabase -project=%UPROJECT_PATH% -game -engine %PROJECT_NAME%Editor Development Win64 Development %TAIL_PARAMS%
 move %UE4_DIR%\compile_commands.json %PROJECT_DIR%
 exit /B
 
