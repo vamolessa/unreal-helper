@@ -61,7 +61,7 @@ if "%ACTION%" EQU "c" set ACTION=clean
 if "%ACTION%" NEQ "clean" goto CLEAN_END
 
 echo CLEANING...
-call "%BATCH_FILES_DIR%\Clean.bat" %PROJECT_NAME%Editor Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
+call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
 exit /B
 
 :CLEAN_END
@@ -71,7 +71,7 @@ if "%ACTION%" EQU "b" set ACTION=build
 if "%ACTION%" NEQ "build" goto BUILD_END
 
 echo BUILDING...
-call "%BATCH_FILES_DIR%\Build.bat" %PROJECT_NAME%Editor Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
+call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
 exit /B
 
 :BUILD_END
