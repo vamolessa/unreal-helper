@@ -94,8 +94,6 @@ if "%ACTION%" NEQ "build" goto BUILD_END
 echo BUILDING...
 call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
 
-echo error: %ERRORLEVEL%
-
 exit /b %ERRORLEVEL%
 :BUILD_END
 
