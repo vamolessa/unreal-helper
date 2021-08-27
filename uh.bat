@@ -1,11 +1,12 @@
 @echo off
+setlocal EnableDelayedExpansion
 
 rem ============================================================= SETUP
 
 for %%f in ("*.uproject") do set PROJECT_NAME=%%f
 if defined PROJECT_NAME goto PROJECT_NAME_DEFINED
 echo could not find a `.uproject` file
-exit /B
+exit /b
 :PROJECT_NAME_DEFINED
 
 set PROJECT_NAME=%PROJECT_NAME:~0,-9%
@@ -25,7 +26,7 @@ set PROJECT_DIR=%ROOTDIR%
 set UPROJECT_PATH=%PROJECT_DIR%\%PROJECT_NAME%.uproject
 
 if defined UE4_DIR goto UE4_DIR_DEFINED
-for /f "tokens=2*" %%t in (
+for /f "tokens=2* skip=1" %%t in (
 	'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
 ) do set UE4_DIR=%%u
 :UE4_DIR_DEFINED
@@ -52,18 +53,17 @@ echo " b build - build C++ project sources"
 echo " r run - run project without opening the editor"
 echo " p package [platform=Win64] - package project for `platform`"
 echo " gcc generate-compile-commands - generate `compile_commands.json` file for use with clangd server"
-exit /B
 
+exit /b
 :HELP_END
 
 rem ============================================================= CLEAN ACTION
-if "%ACTION%" EQU "c" set ACTION=clean
 if "%ACTION%" NEQ "clean" goto CLEAN_END
 
 echo CLEANING...
 call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
-exit /B
 
+exit /b
 :CLEAN_END
 
 rem ============================================================= BUILD ACTION
@@ -72,8 +72,8 @@ if "%ACTION%" NEQ "build" goto BUILD_END
 
 echo BUILDING...
 call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
-exit /B
 
+exit /b
 :BUILD_END
 
 rem ============================================================= RUN ACTION
@@ -82,8 +82,8 @@ if "%ACTION%" NEQ "run" goto RUN_END
 
 echo RUNNING...
 start "" "%UE4EDITOR%" "%UPROJECT_PATH%" -game -log -windowed -resx=1280 -resy=720 %TAIL_PARAMS%
-exit /B
 
+exit /b
 :RUN_END
 
 rem ============================================================= PACKAGE ACTION
@@ -99,8 +99,8 @@ if defined TARGET_PLATFORM (
 
 echo PACKAGING FOR %TARGET_PLATFORM%...
 call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target=NekoNeko -clientconfig=Development -serverconfig=Development -utf8output %TAIL_PARAMS%
-exit /B
 
+exit /b
 :PACKAGE_END
 
 rem ============================================================= GENERATE COMPILE COMMANDS ACTION
@@ -110,8 +110,8 @@ if "%ACTION%" NEQ "generate-compile-commands" goto GENERATE_COMPILE_COMMANDS_END
 echo GENERATING COMPILE COMMANDS
 call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Development Win64 Development %TAIL_PARAMS%
 move "%UE4_DIR%\compile_commands.json" "%PROJECT_DIR%"
-exit /B
 
+exit /b
 :GENERATE_COMPILE_COMMANDS_END
 
 echo for more options invoke with `help` subcommand
