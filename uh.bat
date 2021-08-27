@@ -58,6 +58,7 @@ exit /b
 :HELP_END
 
 rem ============================================================= CLEAN ACTION
+if "%ACTION%" EQU "c" set ACTION=clean
 if "%ACTION%" NEQ "clean" goto CLEAN_END
 
 echo CLEANING...
