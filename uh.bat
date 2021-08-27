@@ -46,13 +46,16 @@ if "%ACTION%" EQU "h" set ACTION=help
 if "%ACTION%" NEQ "help" goto HELP_END
 
 echo HELP
+echo.
+
 echo available subcommands:
-echo " h help - show this help"
-echo " c clean - clean build artifacts"
-echo " b build - build C++ project sources"
-echo " r run - run project without opening the editor"
-echo " p package [platform=Win64] - package project for `platform`"
-echo " gcc generate-compile-commands - generate `compile_commands.json` file for use with clangd server"
+echo - h help : show this help
+echo - o open : open project
+echo - c clean : clean build artifacts
+echo - b build : build C++ project sources
+echo - r run : run project without opening the editor
+echo - p package [platform=Win64] : package project for `platform`
+echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
 
 exit /b
 :HELP_END
@@ -66,6 +69,23 @@ call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UP
 
 exit /b
 :CLEAN_END
+
+rem ============================================================= OPEN PROJECT ACTION
+if "%ACTION%" EQU "o" set ACTION=open
+if "%ACTION%" NEQ "open" goto OPEN_PROJECT_END
+
+set TARGET_MAP=%2
+if defined TARGET_MAP (
+	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
+) else (
+	set TARGET_MAP=Win64
+)
+
+echo OPENING...
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% %TAIL_PARAMS%
+
+exit /b
+:OPEN_PROJECT_END
 
 rem ============================================================= BUILD ACTION
 if "%ACTION%" EQU "b" set ACTION=build
@@ -81,8 +101,15 @@ rem ============================================================= RUN ACTION
 if "%ACTION%" EQU "r" set ACTION=run
 if "%ACTION%" NEQ "run" goto RUN_END
 
+set TARGET_MAP=%2
+if defined TARGET_MAP (
+	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
+) else (
+	set TARGET_MAP=Win64
+)
+
 echo RUNNING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" -game -log -windowed -resx=1280 -resy=720 %TAIL_PARAMS%
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% -game -log -windowed -resx=1280 -resy=720 %TAIL_PARAMS%
 
 exit /b
 :RUN_END
