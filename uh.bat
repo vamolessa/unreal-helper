@@ -126,7 +126,7 @@ if defined TARGET_PLATFORM (
 )
 
 echo PACKAGING FOR %TARGET_PLATFORM%...
-call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target=NekoNeko -clientconfig=Development -serverconfig=Development -utf8output %TAIL_PARAMS%
+call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -utf8output %TAIL_PARAMS%
 
 exit /b %ERRORLEVEL%
 :PACKAGE_END
