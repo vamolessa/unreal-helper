@@ -126,6 +126,8 @@ if defined TARGET_PLATFORM (
 )
 
 echo PACKAGING FOR %TARGET_PLATFORM%...
+
+call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -game -progress -buildscw
 call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -utf8output %TAIL_PARAMS%
 
 exit /b %ERRORLEVEL%
