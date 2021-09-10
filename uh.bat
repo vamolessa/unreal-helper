@@ -25,10 +25,17 @@ set ROOTDIR=%ROOTDIR:~0,-1%
 set PROJECT_DIR=%ROOTDIR%
 set UPROJECT_PATH=%PROJECT_DIR%\%PROJECT_NAME%.uproject
 
-if defined UE4_DIR goto UE4_DIR_DEFINED
+if defined UE4_DIR goto UE4_DIR_ENV_DEFINED
 for /f "tokens=2* skip=1" %%t in (
 	'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
 ) do set UE4_DIR=%%u
+:UE4_DIR_ENV_DEFINED
+
+if defined UE4_DIR goto UE4_DIR_DEFINED
+echo.
+echo COULD NOT FIND UNREAL INSTALLATION DIR!!
+echo SET THE ENVIRONMENT VARIABLE 'UE4_DIR' TO YOUR UNREAL INSTALLATION DIRECTORY AND TRY AGAIN
+exit /b
 :UE4_DIR_DEFINED
 
 echo UE4_DIR: %UE4_DIR%
