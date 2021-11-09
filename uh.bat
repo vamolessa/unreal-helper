@@ -2,7 +2,6 @@
 setlocal EnableDelayedExpansion
 
 rem ============================================================= SETUP
-
 for %%f in ("*.uproject") do set PROJECT_NAME=%%f
 if defined PROJECT_NAME goto PROJECT_NAME_DEFINED
 echo could not find a `.uproject` file
@@ -25,17 +24,10 @@ set ROOTDIR=%ROOTDIR:~0,-1%
 set PROJECT_DIR=%ROOTDIR%
 set UPROJECT_PATH=%PROJECT_DIR%\%PROJECT_NAME%.uproject
 
-if defined UE4_DIR goto UE4_DIR_ENV_DEFINED
+if defined UE4_DIR goto UE4_DIR_DEFINED
 for /f "tokens=2* skip=1" %%t in (
 	'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
 ) do set UE4_DIR=%%u
-:UE4_DIR_ENV_DEFINED
-
-if defined UE4_DIR goto UE4_DIR_DEFINED
-echo.
-echo COULD NOT FIND UNREAL INSTALLATION DIR!!
-echo SET THE ENVIRONMENT VARIABLE 'UE4_DIR' TO YOUR UNREAL INSTALLATION DIRECTORY AND TRY AGAIN
-exit /b 1
 :UE4_DIR_DEFINED
 
 echo UE4_DIR: %UE4_DIR%
@@ -56,12 +48,12 @@ echo HELP
 echo.
 
 echo available subcommands:
-echo - h help : show this help
-echo - o open : open project
+echo - h help : show help message
+echo - o open [map]: open project in the editor, optionally directly opening map `map`
 echo - c clean : clean build artifacts
 echo - b build : build C++ project sources
-echo - r run : run project without opening the editor
-echo - p package [platform=Win64] : package project for `platform`
+echo - r run [map] : run project without opening the editor, optionally directly running map `map`
+echo - p package [platform] : package project for `platform` (default is `Win64`)
 echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
 
 exit /b
@@ -116,7 +108,7 @@ if defined TARGET_MAP (
 )
 
 echo RUNNING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% -game -log -windowed -resx=1280 -resy=720 %TAIL_PARAMS%
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
 
 exit /b
 :RUN_END
