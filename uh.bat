@@ -65,6 +65,8 @@ if "%ACTION%" NEQ "clean" goto CLEAN_END
 
 echo CLEANING...
 call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
+rmdir /s /q Build
+rmdir /s /q Binaries
 
 exit /b
 :CLEAN_END
