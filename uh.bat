@@ -48,12 +48,12 @@ echo HELP
 echo.
 
 echo available subcommands:
-echo - h help : show help message
-echo - o open [map]: open project in the editor, optionally directly opening map `map`
+echo - h help : show this help
+echo - o open : open project
 echo - c clean : clean build artifacts
 echo - b build : build C++ project sources
-echo - r run [map] : run project without opening the editor, optionally directly running map `map`
-echo - p package [platform] : package project for `platform` (default is `Win64`)
+echo - r run : run project without opening the editor
+echo - p package [platform=Win64] : package project for `platform`
 echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
 
 exit /b
@@ -127,7 +127,7 @@ if defined TARGET_PLATFORM (
 echo PACKAGING FOR %TARGET_PLATFORM%...
 
 call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -game -progress -buildscw
-call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -nodebuginfo -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -utf8output %TAIL_PARAMS%
+call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output %TAIL_PARAMS%
 
 exit /b %ERRORLEVEL%
 :PACKAGE_END
