@@ -83,7 +83,7 @@ if defined TARGET_MAP (
 )
 
 echo OPENING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% %TAIL_PARAMS%
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
 
 exit /b
 :OPEN_PROJECT_END
@@ -110,7 +110,7 @@ if defined TARGET_MAP (
 )
 
 echo RUNNING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
+start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
 
 exit /b
 :RUN_END
@@ -138,8 +138,8 @@ rem ============================================================= GENERATE COMPI
 if "%ACTION%" EQU "gcc" set ACTION=generate-compile-commands
 if "%ACTION%" NEQ "generate-compile-commands" goto GENERATE_COMPILE_COMMANDS_END
 
-echo GENERATING COMPILE COMMANDS
-call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Development Win64 Development %TAIL_PARAMS%
+echo GENERATING COMPILE COMMANDS...
+call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Win64 Development %TAIL_PARAMS%
 move "%UE4_DIR%\compile_commands.json" "%PROJECT_DIR%"
 
 exit /b
