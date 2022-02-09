@@ -33,7 +33,6 @@ for /f "tokens=2* skip=1" %%t in (
 echo UE4_DIR: %UE4_DIR%
 
 set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor.exe
-set UE4EDITOR_CMD=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor-cmd.exe
 set BATCH_FILES_DIR=%UE4_DIR%\Engine\Build\BatchFiles
 
 set ACTION=%1
