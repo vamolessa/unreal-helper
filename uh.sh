@@ -110,9 +110,9 @@ then
 	else
 		TAIL_PARAMS="${@:3}"
 	fi
-	
+
 	echo "PACKAGING FOR $TARGET_PLATFORM..."
-	
+
 	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}Editor" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload -game -progress -buildscw
 	eval "$BATCH_FILES_DIR/../RunUAT.sh" -ScriptsForProject="$UPROJECT_PATH" BuildCookRun -nocompileeditor -installed -nop4 -project="$UPROJECT_PATH" -cook -stage -archive -archivedirectory="$PROJECT_DIR/Build" -package -pak -prereqs -targetplatform=$TARGET_PLATFORM -build -target="$PROJECT_NAME" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output $TAIL_PARAMS
 fi
