@@ -28,7 +28,6 @@ fi
 echo "UE4_DIR: $UE4_DIR"
 
 UE4EDITOR="$UE4_DIR/Engine/Binaries/Linux/UE4Editor"
-UE4EDITOR_CMD="$UE4_DIR/Engine/Binaries/Linux/UE4Editor-cmd"
 BATCH_FILES_DIR="$UE4_DIR/Engine/Build/BatchFiles/Linux"
 
 ACTION=$1
@@ -75,7 +74,7 @@ then
 	fi
 
 	echo "OPENING..."
-	eval "$UE4EDITOR" "$UPROJECT_PATH" "$TARGET_MAP" $TAIL_PARAMS
+	eval "$UE4EDITOR" "$UPROJECT_PATH" "$TARGET_MAP" $TAIL_PARAMS > /dev/null 2> /dev/null &
 fi
 
 # ============================================================= BUILD ACTION
@@ -120,6 +119,9 @@ fi
 # ============================================================= GENERATE COMPILE COMMANDS ACTION
 if test "$ACTION" = "gcc" || test "$ACTION" = "generate-compile-commands"
 then
+	echo "not supported on linux??"
+	exit
+
 	echo "GENERATING COMPILE COMMANDS..."
 	UNREAL_BUILD_TOOL=$UE4_DIR/Engine/Binaries/DotNET/UnrealBuildTool.exe
 	eval "chmod +x $UNREAL_BUILD_TOOL"
