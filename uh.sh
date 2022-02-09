@@ -81,6 +81,7 @@ fi
 if test "$ACTION" = "b" || test "$ACTION" = "build"
 then
 	echo "BUILDING..."
+	chmod +x "$BATCH_FILES_DIR/Build.sh"
 	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}Editor" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload $TAIL_PARAMS
 fi
 
@@ -123,8 +124,8 @@ then
 	exit
 
 	echo "GENERATING COMPILE COMMANDS..."
-	UNREAL_BUILD_TOOL=$UE4_DIR/Engine/Binaries/DotNET/UnrealBuildTool.exe
-	eval "chmod +x $UNREAL_BUILD_TOOL"
+	UNREAL_BUILD_TOOL="$UE4_DIR/Engine/Binaries/DotNET/UnrealBuildTool.exe"
+	chmod +x "$UNREAL_BUILD_TOOL"
 	eval "$UNREAL_BUILD_TOOL" -mode=GenerateClangDatabase -project="$UPROJECT_PATH" -game -engine "${PROJECT_NAME}Editor" Linux Development $TAIL_PARAMS
 	mv "$UE4_DIR/compile_commands.json" "$PROJECT_DIR/"
 fi
