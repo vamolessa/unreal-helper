@@ -22,7 +22,7 @@ UPROJECT_PATH="$PROJECT_DIR/$PROJECT_NAME.uproject"
 if test -z $UE4_DIR
 then
 	echo '$UE4_DIR not defined'
-	#exit
+	exit
 fi
 
 echo "UE4_DIR: $UE4_DIR"
