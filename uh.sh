@@ -97,6 +97,8 @@ then
 	echo "BUILDING..."
 	chmod +x "$BATCH_FILES_DIR/Build.sh"
 	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}Editor" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload $TAIL_PARAMS
+
+	exit
 fi
 
 # ============================================================= RUN ACTION
@@ -112,6 +114,8 @@ then
 
 	echo "RUNNING..."
 	eval "$UE4EDITOR" "$UPROJECT_PATH" "$TARGET_MAP" -game -log -windowed -resx=960 -resy=540 $TAIL_PARAMS
+
+	exit
 fi
 
 # ============================================================= PACKAGE ACTION
@@ -129,6 +133,8 @@ then
 
 	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload -game -progress -buildscw
 	eval "$BATCH_FILES_DIR/../RunUAT.sh" -ScriptsForProject="$UPROJECT_PATH" BuildCookRun -nocompileeditor -installed -nop4 -project="$UPROJECT_PATH" -cook -stage -archive -archivedirectory="$PROJECT_DIR/Build" -package -pak -prereqs -targetplatform=$TARGET_PLATFORM -build -target="$PROJECT_NAME" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output $TAIL_PARAMS
+
+	exit
 fi
 
 # ============================================================= GENERATE COMPILE COMMANDS ACTION
@@ -142,6 +148,8 @@ then
 	chmod +x "$UNREAL_BUILD_TOOL"
 	eval "$UNREAL_BUILD_TOOL" -mode=GenerateClangDatabase -project="$UPROJECT_PATH" -game -engine "${PROJECT_NAME}Editor" Linux Development $TAIL_PARAMS
 	mv "$UE4_DIR/compile_commands.json" "$PROJECT_DIR/"
+
+	exit
 fi
 
 if test -z $ACTION
