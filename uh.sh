@@ -30,6 +30,8 @@ echo "UE4_DIR: $UE4_DIR"
 UE4EDITOR="$UE4_DIR/Engine/Binaries/Linux/UE4Editor"
 BATCH_FILES_DIR="$UE4_DIR/Engine/Build/BatchFiles/Linux"
 
+INSTALL_TARGET="/usr/local/bin/uh"
+
 ACTION=$1
 TAIL_PARAMS="${@:2}"
 
@@ -41,6 +43,7 @@ then
 
 	echo "available subcommands:"
 	echo "- h help : show this help"
+	echo "- install : install this script to '$INSTALL_TARGET'"
 	echo "- o open : open project"
 	echo "- c clean : clean build artifacts"
 	echo "- b build : build C++ project sources"
@@ -51,11 +54,22 @@ then
 	exit
 fi
 
+# ============================================================= INSTALL ACTION
+if test "$ACTION" = "install"
+then
+	echo "INSTALLING UNREAL HELPER TO '$INSTALL_TARGET'..."
+
+	sudo cp $0 $INSTALL_TARGET
+	sudo chmod +x $INSTALL_TARGET
+
+	exit
+fi
+
 # ============================================================= CLEAN ACTION
 if test "$ACTION" = "c" || test "$ACTION" = "clean"
 then
 	echo "CLEANING..."
-	#eval "$BATCH_FILES_DIR/Clean.sh" "${PROJECT_NAME}Editor" Linux Development "$UPROJECT_PATH" $TAIL_PARAMS
+
 	rm -rf Build
 	rm -rf Binaries
 
@@ -113,7 +127,7 @@ then
 
 	echo "PACKAGING FOR $TARGET_PLATFORM..."
 
-	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}Editor" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload -game -progress -buildscw
+	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload -game -progress -buildscw
 	eval "$BATCH_FILES_DIR/../RunUAT.sh" -ScriptsForProject="$UPROJECT_PATH" BuildCookRun -nocompileeditor -installed -nop4 -project="$UPROJECT_PATH" -cook -stage -archive -archivedirectory="$PROJECT_DIR/Build" -package -pak -prereqs -targetplatform=$TARGET_PLATFORM -build -target="$PROJECT_NAME" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output $TAIL_PARAMS
 fi
 
@@ -129,3 +143,6 @@ then
 	eval "$UNREAL_BUILD_TOOL" -mode=GenerateClangDatabase -project="$UPROJECT_PATH" -game -engine "${PROJECT_NAME}Editor" Linux Development $TAIL_PARAMS
 	mv "$UE4_DIR/compile_commands.json" "$PROJECT_DIR/"
 fi
+
+echo
+echo "unknown action '$ACTION'"
