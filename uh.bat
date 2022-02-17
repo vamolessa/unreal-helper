@@ -144,4 +144,8 @@ move "%UE4_DIR%\compile_commands.json" "%PROJECT_DIR%"
 exit /b
 :GENERATE_COMPILE_COMMANDS_END
 
-echo for more options invoke with `help` subcommand
+if defined ACTION (
+	echo unknown action "%ACTION%"
+) else (
+	echo for more options invoke with this `help` subcommand
+)
