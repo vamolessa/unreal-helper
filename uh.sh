@@ -144,5 +144,9 @@ then
 	mv "$UE4_DIR/compile_commands.json" "$PROJECT_DIR/"
 fi
 
-echo
-echo "unknown action '$ACTION'"
+if test -z $ACTION
+then
+	echo "for more options invoke with the 'help' subcommand"
+else
+	echo "unknown action '$ACTION'"
+fi
