@@ -89,6 +89,8 @@ then
 
 	echo "OPENING..."
 	eval "$UE4EDITOR" "$UPROJECT_PATH" "$TARGET_MAP" $TAIL_PARAMS > /dev/null 2> /dev/null &
+
+	exit
 fi
 
 # ============================================================= BUILD ACTION
