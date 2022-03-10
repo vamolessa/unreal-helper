@@ -1,150 +1,161 @@
-@echo off
-setlocal EnableDelayedExpansion
+#!/usr/bin/env sh
 
-rem ============================================================= SETUP
-for %%f in ("*.uproject") do set PROJECT_NAME=%%f
-if defined PROJECT_NAME goto PROJECT_NAME_DEFINED
-echo could not find a `.uproject` file
-exit /b
-:PROJECT_NAME_DEFINED
+set -e
 
-set PROJECT_NAME=%PROJECT_NAME:~0,-9%
-echo PROJECT_NAME: %PROJECT_NAME%
+# ============================================================= SETUP
 
-for /f "tokens=2" %%t in (
-	'find "EngineAssociation" %PROJECT_NAME%.uproject'
-) do set UNREAL_VERSION=%%t
+PROJECT_NAME=$(ls *.uproject | head -n 1 | xargs basename -s .uproject)
+if test -z $PROJECT_NAME
+then
+	echo "could not find a '.uproject' file"
+	exit
+fi
 
-set UNREAL_VERSION=%UNREAL_VERSION:~1,-2%
-echo UNREAL_VERSION: %UNREAL_VERSION%
+echo "PROJECT_NAME: $PROJECT_NAME"
 
-set ROOTDIR=%~dp0
-set ROOTDIR=%ROOTDIR:~0,-1%
+UNREAL_VERSION=$(grep "EngineAssociation" $PROJECT_NAME.uproject | cut -d '"' -f 4)
+echo "UNREAL_VERSION: $UNREAL_VERSION"
 
-set PROJECT_DIR=%ROOTDIR%
-set UPROJECT_PATH=%PROJECT_DIR%\%PROJECT_NAME%.uproject
+PROJECT_DIR=$PWD
+UPROJECT_PATH="$PROJECT_DIR/$PROJECT_NAME.uproject"
 
-if defined UE4_DIR goto UE4_DIR_DEFINED
-for /f "tokens=2* skip=1" %%t in (
-	'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
-) do set UE4_DIR=%%u
-:UE4_DIR_DEFINED
+if test -z $UE4_DIR
+then
+	echo '$UE4_DIR not defined'
+	exit
+fi
 
-echo UE4_DIR: %UE4_DIR%
+echo "UE4_DIR: $UE4_DIR"
 
-set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor.exe
-set BATCH_FILES_DIR=%UE4_DIR%\Engine\Build\BatchFiles
+UE4EDITOR="$UE4_DIR/Engine/Binaries/Linux/UE4Editor"
+BATCH_FILES_DIR="$UE4_DIR/Engine/Build/BatchFiles/Linux"
 
-set ACTION=%1
-set TAIL_PARAMS=%*
-call set TAIL_PARAMS=%%TAIL_PARAMS:*%1=%%
+INSTALL_TARGET="/usr/local/bin/uh"
 
-rem ============================================================= HELP ACTION
-if "%ACTION%" EQU "h" set ACTION=help
-if "%ACTION%" NEQ "help" goto HELP_END
+ACTION=$1
+TAIL_PARAMS="${@:2}"
 
-echo HELP
-echo.
+# ============================================================= HELP ACTION
+if test "$ACTION" = "h" || test "$ACTION" = "help"
+then
+	echo "HELP"
+	echo
 
-echo available subcommands:
-echo - h help : show this help
-echo - o open : open project
-echo - c clean : clean build artifacts
-echo - b build : build C++ project sources
-echo - r run : run project without opening the editor
-echo - p package [platform=Win64] : package project for `platform`
-echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
+	echo "available subcommands:"
+	echo "- h help : show this help"
+	echo "- install : install this script to '$INSTALL_TARGET'"
+	echo "- o open : open project"
+	echo "- c clean : clean build artifacts"
+	echo "- b build : build C++ project sources"
+	echo "- r run : run project without opening the editor"
+	echo "- p package [platform=Linux] : package project for 'platform'"
+	echo "- gcc generate-compile-commands : generate 'compile_commands.json' file for use with clangd server"
 
-exit /b
-:HELP_END
+	exit
+fi
 
-rem ============================================================= CLEAN ACTION
-if "%ACTION%" EQU "c" set ACTION=clean
-if "%ACTION%" NEQ "clean" goto CLEAN_END
+# ============================================================= INSTALL ACTION
+if test "$ACTION" = "install"
+then
+	echo "INSTALLING UNREAL HELPER TO '$INSTALL_TARGET'..."
 
-echo CLEANING...
-call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
-rmdir /s /q Build
-rmdir /s /q Binaries
+	sudo cp $0 $INSTALL_TARGET
+	sudo chmod +x $INSTALL_TARGET
 
-exit /b
-:CLEAN_END
+	exit
+fi
 
-rem ============================================================= OPEN PROJECT ACTION
-if "%ACTION%" EQU "o" set ACTION=open
-if "%ACTION%" NEQ "open" goto OPEN_PROJECT_END
+# ============================================================= CLEAN ACTION
+if test "$ACTION" = "c" || test "$ACTION" = "clean"
+then
+	echo "CLEANING..."
 
-set TARGET_MAP=%2
-if defined TARGET_MAP (
-	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_MAP=Win64
-)
+	rm -rf Build
+	rm -rf Binaries
 
-echo OPENING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
+	exit
+fi
 
-exit /b
-:OPEN_PROJECT_END
+# ============================================================= OPEN PROJECT ACTION
+if test "$ACTION" = "o" || test "$ACTION" = "open"
+then
+	TARGET_MAP=$2
+	if test -z $TARGET_MAP
+	then
+		TARGET_MAP=Linux
+	else
+		TAIL_PARAMS="${@:3}"
+	fi
 
-rem ============================================================= BUILD ACTION
-if "%ACTION%" EQU "b" set ACTION=build
-if "%ACTION%" NEQ "build" goto BUILD_END
+	echo "OPENING..."
+	eval "$UE4EDITOR" "$UPROJECT_PATH" "$TARGET_MAP" $TAIL_PARAMS > /dev/null 2> /dev/null &
 
-echo BUILDING...
-call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
+	exit
+fi
 
-exit /b %ERRORLEVEL%
-:BUILD_END
+# ============================================================= BUILD ACTION
+if test "$ACTION" = "b" || test "$ACTION" = "build"
+then
+	echo "BUILDING..."
+	chmod +x "$BATCH_FILES_DIR/Build.sh"
+	eval "$BATCH_FILES_DIR/Build.sh" "${PROJECT_NAME}Editor" Linux Development "$UPROJECT_PATH" -waitmutex -NoHotReload $TAIL_PARAMS
 
-rem ============================================================= RUN ACTION
-if "%ACTION%" EQU "r" set ACTION=run
-if "%ACTION%" NEQ "run" goto RUN_END
+	exit
+fi
 
-set TARGET_MAP=%2
-if defined TARGET_MAP (
-	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_MAP=Win64
-)
+# ============================================================= RUN ACTION
+if test "$ACTION" = "r" || test "$ACTION" = "run"
+then
+	TARGET_MAP=$2
+	if test -z $TARGET_MAP
+	then
+		TARGET_MAP=Linux
+	else
+		TAIL_PARAMS="${@:3}"
+	fi
 
-echo RUNNING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
+	echo "RUNNING..."
+	eval "$UE4EDITOR" "$UPROJECT_PATH" "$TARGET_MAP" -game -log -windowed -resx=960 -resy=540 $TAIL_PARAMS
 
-exit /b
-:RUN_END
+	exit
+fi
 
-rem ============================================================= PACKAGE ACTION
-if "%ACTION%" EQU "p" set ACTION=package
-if "%ACTION%" NEQ "package" goto PACKAGE_END
+# ============================================================= PACKAGE ACTION
+if test "$ACTION" = "p" || test "$ACTION" = "package"
+then
+	TARGET_PLATFORM=$2
+	if test -z $TARGET_PLATFORM
+	then
+		TARGET_PLATFORM=Linux
+	else
+		TAIL_PARAMS="${@:3}"
+	fi
 
-set TARGET_PLATFORM=%2
-if defined TARGET_PLATFORM (
-	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_PLATFORM=Win64
-)
+	echo "PACKAGING FOR $TARGET_PLATFORM..."
 
-echo PACKAGING FOR %TARGET_PLATFORM%...
+	eval "$BATCH_FILES_DIR/../RunUAT.sh" -ScriptsForProject="$UPROJECT_PATH" BuildCookRun -nocompileeditor -installed -nop4 -project="$UPROJECT_PATH" -cook -stage -archive -archivedirectory="$PROJECT_DIR/Build" -package -pak -prereqs -targetplatform=$TARGET_PLATFORM -build -target="$PROJECT_NAME" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output $TAIL_PARAMS
 
-call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output %TAIL_PARAMS%
+	exit
+fi
 
-exit /b %ERRORLEVEL%
-:PACKAGE_END
+# ============================================================= GENERATE COMPILE COMMANDS ACTION
+if test "$ACTION" = "gcc" || test "$ACTION" = "generate-compile-commands"
+then
+	echo "not supported on linux??"
+	exit
 
-rem ============================================================= GENERATE COMPILE COMMANDS ACTION
-if "%ACTION%" EQU "gcc" set ACTION=generate-compile-commands
-if "%ACTION%" NEQ "generate-compile-commands" goto GENERATE_COMPILE_COMMANDS_END
+	echo "GENERATING COMPILE COMMANDS..."
+	UNREAL_BUILD_TOOL="$UE4_DIR/Engine/Binaries/DotNET/UnrealBuildTool.exe"
+	chmod +x "$UNREAL_BUILD_TOOL"
+	eval "$UNREAL_BUILD_TOOL" -mode=GenerateClangDatabase -project="$UPROJECT_PATH" -game -engine "${PROJECT_NAME}Editor" Linux Development $TAIL_PARAMS
+	mv "$UE4_DIR/compile_commands.json" "$PROJECT_DIR/"
 
-echo GENERATING COMPILE COMMANDS...
-call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Win64 Development %TAIL_PARAMS%
-move "%UE4_DIR%\compile_commands.json" "%PROJECT_DIR%"
+	exit
+fi
 
-exit /b
-:GENERATE_COMPILE_COMMANDS_END
-
-if defined ACTION (
-	echo unknown action "%ACTION%"
-) else (
-	echo for more options invoke with this `help` subcommand
-)
+if test -z $ACTION
+then
+	echo "for more options invoke with the 'help' subcommand"
+else
+	echo "unknown action '$ACTION'"
+fi
