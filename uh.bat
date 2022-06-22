@@ -52,12 +52,12 @@ echo.
 
 echo available subcommands:
 echo - h help : show this help
-echo - o open : open project
-echo - od open-debug : open project while debugging
+echo - o open [map] : open project, optionally directly opening map `map`
+echo - od open-debug [map] : open project while debugging, optionally directly opening map `map`
 echo - c clean : clean build artifacts
 echo - b build : build C++ project sources
-echo - r run : run project without opening the editor
-echo - d debug : debug project without opening the editor
+echo - r run [map] : run project without opening the editor, optionally directly running map `map`
+echo - d debug [map] : debug project without opening the editor, optionally directly running map `map`
 echo - p package [platform=Win64] : package project for `platform`
 echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
 
