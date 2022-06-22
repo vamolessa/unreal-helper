@@ -29,8 +29,12 @@ for /f "tokens=2* skip=1" %%t in (
 	'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
 ) do set UE4_DIR=%%u
 :UE4_DIR_DEFINED
-
 echo UE4_DIR: %UE4_DIR%
+
+if defined VS_DIR goto VS_DIR_DEFINED
+for /d %%d in ("%programfiles(x86)%\Microsoft Visual Studio\*") do if exist "%%d\Community" (set VS_DIR=%%d)
+:VS_DIR_DEFINED
+echo VS_DIR: %VS_DIR%
 
 set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor.exe
 set BATCH_FILES_DIR=%UE4_DIR%\Engine\Build\BatchFiles
@@ -49,9 +53,11 @@ echo.
 echo available subcommands:
 echo - h help : show this help
 echo - o open : open project
+echo - od open-debug : open project while debugging
 echo - c clean : clean build artifacts
 echo - b build : build C++ project sources
 echo - r run : run project without opening the editor
+echo - d debug : debug project without opening the editor
 echo - p package [platform=Win64] : package project for `platform`
 echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
 
@@ -87,6 +93,23 @@ start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
 exit /b
 :OPEN_PROJECT_END
 
+rem ============================================================= OPEN DEBUG PROJECT ACTION
+if "%ACTION%" EQU "od" set ACTION=open-debug
+if "%ACTION%" NEQ "open-debug" goto OPEN_DEBUG_PROJECT_END
+
+set TARGET_MAP=%2
+if defined TARGET_MAP (
+	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
+) else (
+	set TARGET_MAP=Win64
+)
+
+echo OPENING WITH DEBUG...
+start "" "%VS_DIR%\Community\Common7\IDE\devenv" /debugexe "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
+
+exit /b
+:OPEN_DEBUG_PROJECT_END
+
 rem ============================================================= BUILD ACTION
 if "%ACTION%" EQU "b" set ACTION=build
 if "%ACTION%" NEQ "build" goto BUILD_END
@@ -113,6 +136,23 @@ start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" -game -log -windowed -re
 
 exit /b
 :RUN_END
+
+rem ============================================================= DEBUG ACTION
+if "%ACTION%" EQU "d" set ACTION=debug
+if "%ACTION%" NEQ "debug" goto DEBUG_END
+
+set TARGET_MAP=%2
+if defined TARGET_MAP (
+	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
+) else (
+	set TARGET_MAP=Win64
+)
+
+echo DEBUGGING...
+start "" "%VS_DIR%\Community\Common7\IDE\devenv" /debugexe "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
+
+exit /b
+:DEBUG_END
 
 rem ============================================================= PACKAGE ACTION
 if "%ACTION%" EQU "p" set ACTION=package
