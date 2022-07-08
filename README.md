@@ -7,6 +7,7 @@ available subcommands:
 - `h`, `help` : show help message
 - `o`, `open` [map] : open project in the editor, optionally directly opening map `map`
 - `od`, `open-debug` [map] : open project while debugging, optionally directly opening map `map`
+- `s`, `solution` : open visual studio solution
 - `c`, `clean` : clean build artifacts
 - `b`, `build` : build C++ project sources
 - `r`, `run` [map] : run project without opening the editor, optionally directly running map `map`
