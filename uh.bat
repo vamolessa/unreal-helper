@@ -54,6 +54,7 @@ echo available subcommands:
 echo - h help : show this help
 echo - o open [map] : open project, optionally directly opening map `map`
 echo - od open-debug [map] : open project while debugging, optionally directly opening map `map`
+echo - s solution : open visual studio solution
 echo - c clean : clean build artifacts
 echo - b build : build C++ project sources
 echo - r run [map] : run project without opening the editor, optionally directly running map `map`
@@ -92,6 +93,16 @@ start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
 
 exit /b
 :OPEN_PROJECT_END
+
+rem ============================================================= OPEN SOLUTION
+if "%ACTION%" EQU "s" set ACTION=solution
+if "%ACTION%" NEQ "solution" goto OPEN_SOLUTION_END
+
+echo OPENING SOLUTION...
+start "" "%VS_DIR%\Community\Common7\IDE\devenv" .
+
+exit /b
+:OPEN_SOLUTION_END
 
 rem ============================================================= OPEN DEBUG PROJECT ACTION
 if "%ACTION%" EQU "od" set ACTION=open-debug
