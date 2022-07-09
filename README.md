@@ -4,6 +4,7 @@ Place `uh.bat` on the same folder of your `*.uproject` project file and it will 
 both the Unreal version used and its install directory.
 
 ## subcommands
+```
 - h help : show this help
 - e editor [map] : open editor, optionally directly opening `map`
 - de debug-editor [map] : same as `editor` but debugging through visual studio
@@ -18,3 +19,4 @@ both the Unreal version used and its install directory.
 - dr debug-run [instance-count] [map] : same as `run` but debugging the host instance through visual studio
 - p package [platform=Win64] : package project for `platform`
 - gcc generate-compile-commands : generate "compile_commands.json" file for use with clangd server
+```
