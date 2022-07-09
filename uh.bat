@@ -4,7 +4,7 @@ setlocal EnableDelayedExpansion
 rem ============================================================= SETUP
 for %%f in ("*.uproject") do set PROJECT_NAME=%%f
 if defined PROJECT_NAME goto PROJECT_NAME_DEFINED
-echo could not find a `.uproject` file
+echo could not find a ".uproject" file
 exit /b
 :PROJECT_NAME_DEFINED
 
@@ -32,170 +32,191 @@ for /f "tokens=2* skip=1" %%t in (
 echo UE4_DIR: %UE4_DIR%
 
 if defined VS_DIR goto VS_DIR_DEFINED
-for /d %%d in ("%programfiles(x86)%\Microsoft Visual Studio\*") do if exist "%%d\Community" (set VS_DIR=%%d)
+for /d %%d in ("%programfiles(x86)%\Microsoft Visual Studio\*") do if exist "%%d\Community" ( set VS_DIR=%%d )
 :VS_DIR_DEFINED
 echo VS_DIR: %VS_DIR%
+set VS_PATH=%VS_DIR%\Community\Common7\IDE\devenv
+
+echo.
 
 set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor.exe
 set BATCH_FILES_DIR=%UE4_DIR%\Engine\Build\BatchFiles
 
+set IS_DEBUGGING=
 set ACTION=%1
 set TAIL_PARAMS=%*
 call set TAIL_PARAMS=%%TAIL_PARAMS:*%1=%%
 
+if "%ACTION%" EQU "h" ( goto ACTION_HELP )
+if "%ACTION%" EQU "help" ( goto ACTION_HELP )
+if "%ACTION%" EQU "c" ( goto ACTION_CLEAN )
+if "%ACTION%" EQU "clean" ( goto ACTION_CLEAN )
+if "%ACTION%" EQU "e" ( goto ACTION_OPEN_EDITOR )
+if "%ACTION%" EQU "editor" ( goto ACTION_OPEN_EDITOR )
+if "%ACTION%" EQU "de" ( goto ACTION_DEBUG_EDITOR )
+if "%ACTION%" EQU "debug-editor" ( goto ACTION_DEBUG_EDITOR )
+if "%ACTION%" EQU "s" ( goto ACTION_OPEN_SOLUTION )
+if "%ACTION%" EQU "solution" ( goto ACTION_OPEN_SOLUTION )
+if "%ACTION%" EQU "b" ( goto ACTION_BUILD )
+if "%ACTION%" EQU "build" ( goto ACTION_BUILD )
+if "%ACTION%" EQU "r" ( goto ACTION_RUN )
+if "%ACTION%" EQU "run" ( goto ACTION_RUN )
+if "%ACTION%" EQU "dr" ( goto ACTION_DEBUG_RUN )
+if "%ACTION%" EQU "debug-run" ( goto ACTION_DEBUG_RUN )
+if "%ACTION%" EQU "p" ( goto ACTION_PACKAGE )
+if "%ACTION%" EQU "package" ( goto ACTION_PACKAGE )
+if "%ACTION%" EQU "gcc" ( goto ACTION_GENERATE_COMPILE_COMMANDS )
+if "%ACTION%" EQU "generate-compile-commands" ( goto ACTION_GENERATE_COMPILE_COMMANDS )
+
+if defined ACTION (
+	echo unknown action "%ACTION%" && echo try invoking with "help" subcommand
+) else (
+	echo for more options, invoke with "help" subcommand
+)
+exit /b
+
+:ACTION_HELP
 rem ============================================================= HELP ACTION
-if "%ACTION%" EQU "h" set ACTION=help
-if "%ACTION%" NEQ "help" goto HELP_END
-
 echo HELP
-echo.
-
-echo available subcommands:
 echo - h help : show this help
-echo - o open [map] : open project, optionally directly opening map `map`
-echo - od open-debug [map] : open project while debugging, optionally directly opening map `map`
+echo - e editor [map] : open editor, optionally directly opening `map`
+echo - de debug-editor [map] : same as `editor` but debugging through visual studio
 echo - s solution : open visual studio solution
 echo - c clean : clean build artifacts
 echo - b build : build C++ project sources
-echo - r run [map] : run project without opening the editor, optionally directly running map `map`
-echo - d debug [map] : debug project without opening the editor, optionally directly running map `map`
+echo - r run [instance-count] [map] : run game without opening the editor
+echo                                : optionally running `instance-count` game instances
+echo                                : optionally directly running `map`
+echo                                : also, instead of a map name, it's possible to pass `client`
+echo                                : in order to just connect to an already running host
+echo - dr debug-run [instance-count] [map] : same as `run` but debugging the host instance through visual studio
 echo - p package [platform=Win64] : package project for `platform`
-echo - gcc generate-compile-commands : generate `compile_commands.json` file for use with clangd server
-
+echo - gcc generate-compile-commands : generate "compile_commands.json" file for use with clangd server
 exit /b
-:HELP_END
 
+:ACTION_CLEAN
 rem ============================================================= CLEAN ACTION
-if "%ACTION%" EQU "c" set ACTION=clean
-if "%ACTION%" NEQ "clean" goto CLEAN_END
-
+set CLI=call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
+if defined VERBOSE ( echo %CLI% && echo. )
 echo CLEANING...
-call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
+echo.
+%CLI%
 rmdir /s /q Build
 rmdir /s /q Binaries
-
 exit /b
-:CLEAN_END
 
-rem ============================================================= OPEN PROJECT ACTION
-if "%ACTION%" EQU "o" set ACTION=open
-if "%ACTION%" NEQ "open" goto OPEN_PROJECT_END
-
-set TARGET_MAP=%2
+:ACTION_OPEN_EDITOR
+rem ============================================================= OPEN EDITOR ACTION
+set TARGET_MAP=%~2
 if defined TARGET_MAP (
-	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_MAP=Win64
+	rem call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
 )
-
-echo OPENING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
-
+set CLI="%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
+if defined IS_DEBUGGING (
+	set CLI="%VS_PATH%" /debugexe %CLI%
+) else (
+	set CLI=start "" %CLI%
+)
+if defined VERBOSE ( echo %CLI% && echo. )
+if defined IS_DEBUGGING ( echo DEBUG OPENING EDITOR... ) else ( echo OPENING EDITOR... )
+%CLI%
 exit /b
-:OPEN_PROJECT_END
 
-rem ============================================================= OPEN SOLUTION
-if "%ACTION%" EQU "s" set ACTION=solution
-if "%ACTION%" NEQ "solution" goto OPEN_SOLUTION_END
+:ACTION_DEBUG_EDITOR
+rem ============================================================= DEBUG EDITOR ACTION
+set IS_DEBUGGING=true
+goto ACTION_OPEN_EDITOR
 
+:ACTION_OPEN_SOLUTION
+rem ============================================================= OPEN SOLUTION ACTION
+set CLI="%VS_PATH%" .
+if defined VERBOSE ( echo %CLI% && echo. )
 echo OPENING SOLUTION...
-start "" "%VS_DIR%\Community\Common7\IDE\devenv" .
-
+%CLI%
 exit /b
-:OPEN_SOLUTION_END
 
-rem ============================================================= OPEN DEBUG PROJECT ACTION
-if "%ACTION%" EQU "od" set ACTION=open-debug
-if "%ACTION%" NEQ "open-debug" goto OPEN_DEBUG_PROJECT_END
-
-set TARGET_MAP=%2
-if defined TARGET_MAP (
-	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_MAP=Win64
-)
-
-echo OPENING WITH DEBUG...
-start "" "%VS_DIR%\Community\Common7\IDE\devenv" /debugexe "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
-
-exit /b
-:OPEN_DEBUG_PROJECT_END
-
+:ACTION_BUILD
 rem ============================================================= BUILD ACTION
-if "%ACTION%" EQU "b" set ACTION=build
-if "%ACTION%" NEQ "build" goto BUILD_END
-
+set CLI=call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
+if defined VERBOSE ( echo %CLI% && echo. )
 echo BUILDING...
-call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
-
+echo.
+%CLI%
 exit /b %ERRORLEVEL%
-:BUILD_END
 
+:ACTION_RUN
 rem ============================================================= RUN ACTION
-if "%ACTION%" EQU "r" set ACTION=run
-if "%ACTION%" NEQ "run" goto RUN_END
+set RESX=960
+set RESY=540
+set PORT=17777
+set GAME_USER_SETTINGS=%PROJECT_DIR%\Saved\Config\Windows\PIEGameUserSettings
 
-set TARGET_MAP=%2
+set TARGET_MAP=%~2
 if defined TARGET_MAP (
 	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_MAP=Win64
 )
 
-echo RUNNING...
-start "" "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
-
-exit /b
-:RUN_END
-
-rem ============================================================= DEBUG ACTION
-if "%ACTION%" EQU "d" set ACTION=debug
-if "%ACTION%" NEQ "debug" goto DEBUG_END
-
-set TARGET_MAP=%2
-if defined TARGET_MAP (
-	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
-) else (
-	set TARGET_MAP=Win64
+set /a INSTANCE_COUNT=TARGET_MAP + 0
+if "%INSTANCE_COUNT%" EQU "%TARGET_MAP%" (
+	set TARGET_MAP=%~3
+	if defined TARGET_MAP (
+		call set TAIL_PARAMS=%%TAIL_PARAMS:*%3=%%
+	)
 )
 
-echo DEBUGGING...
-start "" "%VS_DIR%\Community\Common7\IDE\devenv" /debugexe "%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" -game -log -windowed -resx=960 -resy=540 %TAIL_PARAMS%
+if "%TARGET_MAP%" EQU "client" (
+	set TARGET_MAP=127.0.0.1:%PORT%
+) else (
+	set TARGET_MAP="%TARGET_MAP%?Listen" -port=%PORT%
+)
 
+set SERVER_CLI="%UE4EDITOR%" "%UPROJECT_PATH%" %TARGET_MAP% -game -log -windowed -resx=%RESX% -resy=%RESY% SAVEWINPOS=1 -SessionName=Session GameUserSettingsINI="%GAME_USER_SETTINGS%0.ini" %TAIL_PARAMS%
+if defined IS_DEBUGGING (
+	set SERVER_CLI="%VS_PATH%" /debugexe %SERVER_CLI%
+) else (
+	set SERVER_CLI=start "" %SERVER_CLI%
+)
+
+set CLIENT_CLI=start "" "%UE4EDITOR%" "%UPROJECT_PATH%" 127.0.0.1:%PORT% -game -log -windowed -resx=%RESX% -resy=%RESY% SAVEWINPOS=1 -SessionName=Session
+set /a CLIENT_COUNT=%INSTANCE_COUNT% - 1
+if defined VERBOSE (
+	echo %SERVER_CLI%
+	for /l %%i in (1,1,%CLIENT_COUNT%) do (
+		echo %CLIENT_CLI% GameUserSettingsINI="%GAME_USER_SETTINGS%%%i.ini" %TAIL_PARAMS%
+	)
+	echo.
+)
+if defined IS_DEBUGGING ( echo DEBUG RUNNING... ) else ( echo RUNNING... )
+%SERVER_CLI%
+for /l %%i in (1,1,%CLIENT_COUNT%) do (
+	%CLIENT_CLI% GameUserSettingsINI="%GAME_USER_SETTINGS%%%i.ini" %TAIL_PARAMS%
+)
 exit /b
-:DEBUG_END
 
+:ACTION_DEBUG_RUN
+rem ============================================================= DEBUG RUN ACTION
+set IS_DEBUGGING=true
+goto ACTION_RUN
+
+:ACTION_PACKAGE
 rem ============================================================= PACKAGE ACTION
-if "%ACTION%" EQU "p" set ACTION=package
-if "%ACTION%" NEQ "package" goto PACKAGE_END
-
-set TARGET_PLATFORM=%2
+set TARGET_PLATFORM=%~2
 if defined TARGET_PLATFORM (
 	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
 ) else (
 	set TARGET_PLATFORM=Win64
 )
-
+set CLI=call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output %TAIL_PARAMS%
+if defined VERBOSE ( echo %CLI% && echo. )
 echo PACKAGING FOR %TARGET_PLATFORM%...
-
-call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output %TAIL_PARAMS%
-
+echo.
+%CLI%
 exit /b %ERRORLEVEL%
-:PACKAGE_END
 
+:ACTION_GENERATE_COMPILE_COMMANDS
 rem ============================================================= GENERATE COMPILE COMMANDS ACTION
-if "%ACTION%" EQU "gcc" set ACTION=generate-compile-commands
-if "%ACTION%" NEQ "generate-compile-commands" goto GENERATE_COMPILE_COMMANDS_END
-
 echo GENERATING COMPILE COMMANDS...
+echo.
 call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Win64 Development %TAIL_PARAMS%
 move "%UE4_DIR%\compile_commands.json" "%PROJECT_DIR%"
-
 exit /b
-:GENERATE_COMPILE_COMMANDS_END
-
-if defined ACTION (
-	echo unknown action "%ACTION%"
-) else (
-	echo for more options invoke with this `help` subcommand
-)
