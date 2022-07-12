@@ -129,7 +129,7 @@ goto ACTION_OPEN_EDITOR
 
 :ACTION_OPEN_SOLUTION
 rem ============================================================= OPEN SOLUTION ACTION
-set CLI="%VS_PATH%" .
+set CLI="%VS_PATH%" %PROJECT_DIR%\%PROJECT_NAME%.sln
 if defined VERBOSE ( echo %CLI% && echo. )
 echo OPENING SOLUTION...
 %CLI%
