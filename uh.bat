@@ -1,12 +1,15 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+echo unreal helper v1.1
+echo.
+
 rem ============================================================= SETUP
 for %%f in ("*.uproject") do set PROJECT_NAME=%%f
-if defined PROJECT_NAME goto PROJECT_NAME_DEFINED
-echo could not find a ".uproject" file
-exit /b
-:PROJECT_NAME_DEFINED
+if not defined PROJECT_NAME (
+	echo could not find a ".uproject" file
+	exit /b
+)
 
 set PROJECT_NAME=%PROJECT_NAME:~0,-9%
 echo PROJECT_NAME: %PROJECT_NAME%
@@ -24,16 +27,16 @@ set ROOTDIR=%ROOTDIR:~0,-1%
 set PROJECT_DIR=%ROOTDIR%
 set UPROJECT_PATH=%PROJECT_DIR%\%PROJECT_NAME%.uproject
 
-if defined UE4_DIR goto UE4_DIR_DEFINED
-for /f "tokens=2* skip=1" %%t in (
-	'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
-) do set UE4_DIR=%%u
-:UE4_DIR_DEFINED
+if not defined UE4_DIR (
+	for /f "tokens=2* skip=1" %%t in (
+		'reg query "HKLM\Software\EpicGames\Unreal Engine\%UNREAL_VERSION%" /v InstalledDirectory'
+	) do set UE4_DIR=%%u
+)
 echo UE4_DIR: %UE4_DIR%
 
-if defined VS_DIR goto VS_DIR_DEFINED
-for /d %%d in ("%programfiles(x86)%\Microsoft Visual Studio\*") do if exist "%%d\Community" ( set VS_DIR=%%d )
-:VS_DIR_DEFINED
+if not defined VS_DIR (
+	for /d %%d in ("%programfiles(x86)%\Microsoft Visual Studio\*") do if exist "%%d\Community" ( set VS_DIR=%%d )
+)
 echo VS_DIR: %VS_DIR%
 set VS_PATH=%VS_DIR%\Community\Common7\IDE\devenv
 
