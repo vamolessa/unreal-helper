@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableDelayedExpansion
 
-echo unreal helper v1.1
+echo unreal helper v1.2
 echo.
 
 rem ============================================================= SETUP
@@ -39,6 +39,11 @@ if not defined VS_DIR (
 )
 echo VS_DIR: %VS_DIR%
 set VS_PATH=%VS_DIR%\Community\Common7\IDE\devenv
+
+if not defined UH_BUILDMODE (
+	set UH_BUILDMODE=Development
+)
+echo UH_BUILDMODE: %UH_BUILDMODE%
 
 echo.
 
@@ -95,12 +100,19 @@ echo                                : in order to just connect to an already run
 echo - dr debug-run [instance-count] [map] : same as `run` but debugging the host instance through visual studio
 echo - p package [platform=Win64] : package project for `platform`
 echo - gcc generate-compile-commands : generate "compile_commands.json" file for use with clangd server
+echo.
+echo.
+echo it's also possible to define these environment variables to override default behaviors
+echo - UE4_DIR : force an unreal installation
+echo - VS_DIR : force a visual studio installation
+echo - UH_BUILDMODE : change build mode used (default is Development)
+echo - UH_VERBOSE : also print commands before executing them
 exit /b
 
 :ACTION_CLEAN
 rem ============================================================= CLEAN ACTION
-set CLI=call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" %TAIL_PARAMS%
-if defined VERBOSE ( echo %CLI% && echo. )
+set CLI=call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 %UH_BUILDMODE% "%UPROJECT_PATH%" %TAIL_PARAMS%
+if defined UH_VERBOSE ( echo %CLI% && echo. )
 echo CLEANING...
 echo.
 %CLI%
@@ -120,7 +132,7 @@ if defined IS_DEBUGGING (
 ) else (
 	set CLI=start "" %CLI%
 )
-if defined VERBOSE ( echo %CLI% && echo. )
+if defined UH_VERBOSE ( echo %CLI% && echo. )
 if defined IS_DEBUGGING ( echo DEBUG OPENING EDITOR... ) else ( echo OPENING EDITOR... )
 %CLI%
 exit /b
@@ -133,15 +145,15 @@ goto ACTION_OPEN_EDITOR
 :ACTION_OPEN_SOLUTION
 rem ============================================================= OPEN SOLUTION ACTION
 set CLI="%VS_PATH%" %PROJECT_DIR%\%PROJECT_NAME%.sln
-if defined VERBOSE ( echo %CLI% && echo. )
+if defined UH_VERBOSE ( echo %CLI% && echo. )
 echo OPENING SOLUTION...
 %CLI%
 exit /b
 
 :ACTION_BUILD
 rem ============================================================= BUILD ACTION
-set CLI=call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 Development "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
-if defined VERBOSE ( echo %CLI% && echo. )
+set CLI=call "%BATCH_FILES_DIR%\Build.bat" "%PROJECT_NAME%Editor" Win64 %UH_BUILDMODE% "%UPROJECT_PATH%" -waitmutex -NoHotReload %TAIL_PARAMS%
+if defined UH_VERBOSE ( echo %CLI% && echo. )
 echo BUILDING...
 echo.
 %CLI%
@@ -182,7 +194,7 @@ if defined IS_DEBUGGING (
 
 set CLIENT_CLI=start "" "%UE4EDITOR%" "%UPROJECT_PATH%" 127.0.0.1:%PORT% -game -log -windowed -resx=%RESX% -resy=%RESY% SAVEWINPOS=1 -SessionName=Session
 set /a CLIENT_COUNT=%INSTANCE_COUNT% - 1
-if defined VERBOSE (
+if defined UH_VERBOSE (
 	echo %SERVER_CLI%
 	for /l %%i in (1,1,%CLIENT_COUNT%) do (
 		echo %CLIENT_CLI% GameUserSettingsINI="%GAME_USER_SETTINGS%%%i.ini" %TAIL_PARAMS%
@@ -209,8 +221,8 @@ if defined TARGET_PLATFORM (
 ) else (
 	set TARGET_PLATFORM=Win64
 )
-set CLI=call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=Development -serverconfig=Development -crashreporter -utf8output %TAIL_PARAMS%
-if defined VERBOSE ( echo %CLI% && echo. )
+set CLI=call "%BATCH_FILES_DIR%\RunUAT.bat" -ScriptsForProject="%UPROJECT_PATH%" BuildCookRun -nocompileeditor -installed -nop4 -project="%UPROJECT_PATH%" -cook -stage -archive -archivedirectory="%PROJECT_DIR%\Build" -package -pak -prereqs -targetplatform=%TARGET_PLATFORM% -build -target="%PROJECT_NAME%" -clientconfig=%UH_BUILDMODE% -serverconfig=%UH_BUILDMODE% -crashreporter -utf8output %TAIL_PARAMS%
+if defined UH_VERBOSE ( echo %CLI% && echo. )
 echo PACKAGING FOR %TARGET_PLATFORM%...
 echo.
 %CLI%
@@ -220,6 +232,6 @@ exit /b %ERRORLEVEL%
 rem ============================================================= GENERATE COMPILE COMMANDS ACTION
 echo GENERATING COMPILE COMMANDS...
 echo.
-call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Win64 Development %TAIL_PARAMS%
+call "%UE4_DIR%\Engine\Binaries\DotNET\UnrealBuildTool.exe" -mode=GenerateClangDatabase -project="%UPROJECT_PATH%" -game -engine "%PROJECT_NAME%Editor" Win64 %UH_BUILDMODE% %TAIL_PARAMS%
 move "%UE4_DIR%\compile_commands.json" "%PROJECT_DIR%"
 exit /b
