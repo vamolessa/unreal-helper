@@ -3,7 +3,7 @@ Unreal helpers batch file.
 Place `uh.bat` on the same folder of your `*.uproject` project file and it will detect
 both the Unreal version used and its install directory.
 
-## subcommands
+## help
 ```
 - h help : show this help
 - e editor [map] : open editor, optionally directly opening `map`
@@ -19,4 +19,11 @@ both the Unreal version used and its install directory.
 - dr debug-run [instance-count] [map] : same as `run` but debugging the host instance through visual studio
 - p package [platform=Win64] : package project for `platform`
 - gcc generate-compile-commands : generate "compile_commands.json" file for use with clangd server
+
+
+it's also possible to define these environment variables to override default behaviors
+- UE4_DIR : force an unreal installation
+- VS_DIR : force a visual studio installation
+- UH_BUILDMODE : change build mode used (default is Development)
+- UH_VERBOSE : also print commands before executing them
 ```
