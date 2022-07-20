@@ -55,26 +55,26 @@ set ACTION=%1
 set TAIL_PARAMS=%*
 call set TAIL_PARAMS=%%TAIL_PARAMS:*%1=%%
 
-if "%ACTION%" EQU "h" ( goto ACTION_HELP )
-if "%ACTION%" EQU "help" ( goto ACTION_HELP )
-if "%ACTION%" EQU "c" ( goto ACTION_CLEAN )
-if "%ACTION%" EQU "clean" ( goto ACTION_CLEAN )
-if "%ACTION%" EQU "e" ( goto ACTION_OPEN_EDITOR )
-if "%ACTION%" EQU "editor" ( goto ACTION_OPEN_EDITOR )
-if "%ACTION%" EQU "de" ( goto ACTION_DEBUG_EDITOR )
-if "%ACTION%" EQU "debug-editor" ( goto ACTION_DEBUG_EDITOR )
-if "%ACTION%" EQU "s" ( goto ACTION_OPEN_SOLUTION )
-if "%ACTION%" EQU "solution" ( goto ACTION_OPEN_SOLUTION )
-if "%ACTION%" EQU "b" ( goto ACTION_BUILD )
-if "%ACTION%" EQU "build" ( goto ACTION_BUILD )
-if "%ACTION%" EQU "r" ( goto ACTION_RUN )
-if "%ACTION%" EQU "run" ( goto ACTION_RUN )
-if "%ACTION%" EQU "dr" ( goto ACTION_DEBUG_RUN )
-if "%ACTION%" EQU "debug-run" ( goto ACTION_DEBUG_RUN )
-if "%ACTION%" EQU "p" ( goto ACTION_PACKAGE )
-if "%ACTION%" EQU "package" ( goto ACTION_PACKAGE )
-if "%ACTION%" EQU "gcc" ( goto ACTION_GENERATE_COMPILE_COMMANDS )
-if "%ACTION%" EQU "generate-compile-commands" ( goto ACTION_GENERATE_COMPILE_COMMANDS )
+if "%ACTION%" EQU "h" goto ACTION_HELP
+if "%ACTION%" EQU "help" goto ACTION_HELP
+if "%ACTION%" EQU "c" goto ACTION_CLEAN
+if "%ACTION%" EQU "clean" goto ACTION_CLEAN
+if "%ACTION%" EQU "e" goto ACTION_OPEN_EDITOR
+if "%ACTION%" EQU "editor" goto ACTION_OPEN_EDITOR
+if "%ACTION%" EQU "de" goto ACTION_DEBUG_EDITOR
+if "%ACTION%" EQU "debug-editor" goto ACTION_DEBUG_EDITOR
+if "%ACTION%" EQU "s" goto ACTION_OPEN_SOLUTION
+if "%ACTION%" EQU "solution" goto ACTION_OPEN_SOLUTION
+if "%ACTION%" EQU "b" goto ACTION_BUILD
+if "%ACTION%" EQU "build" goto ACTION_BUILD
+if "%ACTION%" EQU "r" goto ACTION_RUN
+if "%ACTION%" EQU "run" goto ACTION_RUN
+if "%ACTION%" EQU "dr" goto ACTION_DEBUG_RUN
+if "%ACTION%" EQU "debug-run" goto ACTION_DEBUG_RUN
+if "%ACTION%" EQU "p" goto ACTION_PACKAGE
+if "%ACTION%" EQU "package" goto ACTION_PACKAGE
+if "%ACTION%" EQU "gcc" goto ACTION_GENERATE_COMPILE_COMMANDS
+if "%ACTION%" EQU "generate-compile-commands" goto ACTION_GENERATE_COMPILE_COMMANDS
 
 if defined ACTION (
 	echo unknown action "%ACTION%" && echo try invoking with "help" subcommand
@@ -111,12 +111,11 @@ exit /b
 
 :ACTION_CLEAN
 rem ============================================================= CLEAN ACTION
-set CLI=call "%BATCH_FILES_DIR%\Clean.bat" "%PROJECT_NAME%Editor" Win64 %UH_BUILDMODE% "%UPROJECT_PATH%" %TAIL_PARAMS%
-if defined UH_VERBOSE ( echo %CLI% && echo. )
 echo CLEANING...
 echo.
-%CLI%
+echo removing 'Build' directory...
 rmdir /s /q Build
+echo removing 'Binaries' directory...
 rmdir /s /q Binaries
 exit /b
 
@@ -124,7 +123,7 @@ exit /b
 rem ============================================================= OPEN EDITOR ACTION
 set TARGET_MAP=%~2
 if defined TARGET_MAP (
-	rem call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
+	call set TAIL_PARAMS=%%TAIL_PARAMS:*%2=%%
 )
 set CLI="%UE4EDITOR%" "%UPROJECT_PATH%" "%TARGET_MAP%" %TAIL_PARAMS%
 if defined IS_DEBUGGING (
