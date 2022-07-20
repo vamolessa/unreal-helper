@@ -47,7 +47,11 @@ echo UH_BUILDMODE: %UH_BUILDMODE%
 
 echo.
 
-set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor.exe
+if %UH_BUILDMODE% EQU DebugGame (
+	set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor-Win64-DebugGame.exe
+) else (
+	set UE4EDITOR=%UE4_DIR%\Engine\Binaries\Win64\UE4Editor.exe
+)
 set BATCH_FILES_DIR=%UE4_DIR%\Engine\Build\BatchFiles
 
 set IS_DEBUGGING=
